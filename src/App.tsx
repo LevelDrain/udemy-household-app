@@ -1,48 +1,73 @@
-import { useEffect, useState } from 'react';
-import './App.css';
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import Home from './pages/Home';
-import Report from './pages/Report';
-import NoMatch from './pages/NoMatch';
-import AppLayout from './components/layout/AppLayout';
-import {theme} from './theme/theme'
-import { ThemeProvider } from '@emotion/react';
-import { CssBaseline } from '@mui/material';
-import { Transaction } from './types/index';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from './firebase';
+import { useEffect, useState } from "react";
+import "./App.css";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import Home from "./pages/Home";
+import Report from "./pages/Report";
+import NoMatch from "./pages/NoMatch";
+import AppLayout from "./components/layout/AppLayout";
+import { theme } from "./theme/theme";
+import { ThemeProvider } from "@emotion/react";
+import { CssBaseline } from "@mui/material";
+import { Transaction } from "./types/index";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "./firebase";
+import { formatMonth } from "./utils/formatting";
 
 function App() {
-    const[transactions, setTransactions]=useState<Transaction[]>([])
+  // firestoreエラーかどうかを判定する型ガード
+  function isFireStoreError(
+    err: unknown
+  ): err is { code: string; message: string } {
+    return typeof err === "object" && err !== null && "code" in err;
+  }
 
-    useEffect(()=>{
-        const fetchTransactions = async() =>{
-            try{
-                const querySnapshot = await getDocs(collection(db, 'Transactions'))
-                querySnapshot.forEach((doc)=>{
-                    console.log(doc.id, '=>', doc.data())
-                })
-            }catch(err){
-                // error
-            }
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "Transactions"));
+        const transactionsData = querySnapshot.docs.map((doc) => {
+          return {
+            ...doc.data(),
+            id: doc.id,
+          } as Transaction; // 型アサーション
+        });
+        console.log(transactionsData);
+        setTransactions(transactionsData);
+      } catch (err) {
+        if (isFireStoreError(err)) {
+          console.error("Firestoreエラー：", err);
+        } else {
+          console.error("一般的なエラー：", err);
         }
-        fetchTransactions()
-    },[])
+      }
+    };
+    fetchTransactions();
+  }, []);
 
-    return (
+  const monthlyTransactions = transactions.filter((transaction) => {
+    return transaction.date.startsWith(formatMonth(currentMonth));
+  });
+
+  return (
     <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
+      <CssBaseline />
+      <Router>
         <Routes>
-            <Route path='/' element={<AppLayout />}>
-            <Route index element={<Home />} />
-            <Route path='/report' element={<Report />} />
-            <Route path='*' element={<NoMatch />} />
-            </Route>
+          <Route path="/" element={<AppLayout />}>
+            <Route
+              index
+              element={<Home monthlyTransactions={monthlyTransactions} />}
+            />
+            <Route path="/report" element={<Report />} />
+            <Route path="*" element={<NoMatch />} />
+          </Route>
         </Routes>
-        </Router>
+      </Router>
     </ThemeProvider>
-    );
+  );
 }
 
 export default App;
