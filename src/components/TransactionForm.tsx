@@ -8,69 +8,131 @@ import {
   Stack,
   TextField,
   Typography,
-} from "@mui/material";
-import React, { useEffect } from "react";
-import CloseIcon from "@mui/icons-material/Close"; // 閉じるボタン用のアイコン
-import FastfoodIcon from "@mui/icons-material/Fastfood"; //食事アイコン
-import { Controller, useForm } from "react-hook-form";
+} from '@mui/material';
+import { useEffect, useState } from 'react';
+import CloseIcon from '@mui/icons-material/Close'; // 閉じるボタン用のアイコン
+import FastfoodIcon from '@mui/icons-material/Fastfood'; //食事アイコン
+import AlarmIcon from '@mui/icons-material/Alarm';
+import AddHomeIcon from '@mui/icons-material/AddHome';
+import Diversity3Icon from '@mui/icons-material/Diversity3';
+import SportsTennisIcon from '@mui/icons-material/SportsTennis';
+import TrainIcon from '@mui/icons-material/Train';
+import WorkIcon from '@mui/icons-material/Work';
+import MoneyIcon from '@mui/icons-material/Money';
+import AddBusinessIcon from '@mui/icons-material/AddBusiness';
+import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+import { Controller, SubmitHandler, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ExpenseCategory, IncomeCategory } from '../types';
+import { Schema, transitionSchema } from '../validations/schema';
 
 interface TransactionFormProps {
   onCloseForm: () => void;
   isEntryDrawerOpen: boolean;
   currentDay: string;
+  onSaveTransaction: (transaction: Schema) => Promise<void>;
 }
 
-type IncomeExpense = "income" | "expense";
+type IncomeExpense = 'income' | 'expense';
+interface CategoryItem {
+  label: IncomeCategory | ExpenseCategory;
+  icon: JSX.Element;
+}
 
 const TransactionForm = ({
   onCloseForm,
   isEntryDrawerOpen,
   currentDay,
+  onSaveTransaction,
 }: TransactionFormProps) => {
   const formWidth = 320;
-  const { control, setValue, watch } = useForm({
+
+  const expenseCategories: CategoryItem[] = [
+    { label: '食費', icon: <FastfoodIcon fontSize="small" /> },
+    { label: '日用品', icon: <AlarmIcon fontSize="small" /> },
+    { label: '住居費', icon: <AddHomeIcon fontSize="small" /> },
+    { label: '交際費', icon: <Diversity3Icon fontSize="small" /> },
+    { label: '娯楽', icon: <SportsTennisIcon fontSize="small" /> },
+    { label: '交通費', icon: <TrainIcon fontSize="small" /> },
+    { label: '雑費', icon: <SportsEsportsIcon fontSize="small" /> },
+  ];
+
+  const incomeCategories: CategoryItem[] = [
+    { label: '給与', icon: <WorkIcon fontSize="small" /> },
+    { label: '副収入', icon: <AddBusinessIcon fontSize="small" /> },
+    { label: 'お小遣い', icon: <MoneyIcon fontSize="small" /> },
+  ];
+
+  const [categories, setCategories] = useState(expenseCategories);
+
+  // react-hook-formのインポート
+  const {
+    control,
+    setValue,
+    watch,
+    formState: { errors },
+    handleSubmit,
+    reset,
+  } = useForm<Schema>({
     defaultValues: {
-      type: "expense",
+      type: 'expense',
       date: currentDay,
-      category: "",
+      category: '',
       amount: 0,
-      content: "",
+      content: '',
     },
+    resolver: zodResolver(transitionSchema),
   });
+  console.log(errors);
 
   const incomeExpenseToggle = (type: IncomeExpense) => {
-    setValue("type", type);
+    setValue('type', type);
+    setValue('category', '');
   };
 
   // 収支タイプを監視
-  const currentType = watch("type");
+  const currentType = watch('type');
 
   useEffect(() => {
-    setValue("date", currentDay);
-  }, [currentDay]);
+    setValue('date', currentDay);
+    const newCategories =
+      currentType === 'expense' ? expenseCategories : incomeCategories;
+    setCategories(newCategories);
+  }, [currentDay, currentType]);
+
+  const onSubmit: SubmitHandler<Schema> = (data) => {
+    onSaveTransaction(data);
+    reset({
+      type: 'expense',
+      date: currentDay,
+      category: '',
+      amount: 0,
+      content: '',
+    });
+  };
 
   return (
     <Box
       sx={{
-        position: "fixed",
+        position: 'fixed',
         top: 64,
-        right: isEntryDrawerOpen ? formWidth : "-2%", // フォームの位置を調整
+        right: isEntryDrawerOpen ? formWidth : '-2%', // フォームの位置を調整
         width: formWidth,
-        height: "100%",
-        bgcolor: "background.paper",
+        height: '100%',
+        bgcolor: 'background.paper',
         zIndex: (theme) => theme.zIndex.drawer - 1,
         transition: (theme) =>
-          theme.transitions.create("right", {
+          theme.transitions.create('right', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
           }),
         p: 2, // 内部の余白
-        boxSizing: "border-box", // ボーダーとパディングをwidthに含める
-        boxShadow: "0px 0px 15px -5px #777777",
+        boxSizing: 'border-box', // ボーダーとパディングをwidthに含める
+        boxShadow: '0px 0px 15px -5px #777777',
       }}
     >
       {/* 入力エリアヘッダー */}
-      <Box display={"flex"} justifyContent={"space-between"} mb={2}>
+      <Box display={'flex'} justifyContent={'space-between'} mb={2}>
         <Typography variant="h6">入力</Typography>
         {/* 閉じるボタン */}
         <IconButton
@@ -83,7 +145,7 @@ const TransactionForm = ({
         </IconButton>
       </Box>
       {/* フォーム要素 */}
-      <Box component={"form"}>
+      <Box component={'form'} onSubmit={handleSubmit(onSubmit)}>
         {/* 収支切り替えボタン */}
         <Controller
           name="type"
@@ -91,16 +153,16 @@ const TransactionForm = ({
           render={({ field }) => (
             <ButtonGroup fullWidth>
               <Button
-                variant={field.value === "expense" ? "contained" : "outlined"}
+                variant={field.value === 'expense' ? 'contained' : 'outlined'}
                 color="error"
-                onClick={() => incomeExpenseToggle("expense")}
+                onClick={() => incomeExpenseToggle('expense')}
               >
                 支出
               </Button>
               <Button
-                onClick={() => incomeExpenseToggle("income")}
-                color={"primary"}
-                variant={field.value === "income" ? "contained" : "outlined"}
+                onClick={() => incomeExpenseToggle('income')}
+                color={'primary'}
+                variant={field.value === 'income' ? 'contained' : 'outlined'}
               >
                 収入
               </Button>
@@ -121,6 +183,8 @@ const TransactionForm = ({
                 InputLabelProps={{
                   shrink: true,
                 }}
+                error={!!errors.date}
+                helperText={errors.date?.message}
               />
             )}
           />
@@ -130,13 +194,20 @@ const TransactionForm = ({
             name="category"
             control={control}
             render={({ field }) => (
-              <TextField {...field} id="カテゴリ" label="カテゴリ" select>
-                <MenuItem value={"食費"}>
-                  <ListItemIcon>
-                    <FastfoodIcon />
-                  </ListItemIcon>
-                  食費
-                </MenuItem>
+              <TextField
+                {...field}
+                id="カテゴリ"
+                label="カテゴリ"
+                select
+                error={!!errors.category}
+                helperText={errors.category?.message}
+              >
+                {categories.map((category) => (
+                  <MenuItem key={category.label} value={category.label}>
+                    <ListItemIcon>{category.icon}</ListItemIcon>
+                    {category.label}
+                  </MenuItem>
+                ))}
               </TextField>
             )}
           />
@@ -146,7 +217,18 @@ const TransactionForm = ({
             name="amount"
             control={control}
             render={({ field }) => (
-              <TextField {...field} label="金額" type="number" />
+              <TextField
+                {...field}
+                value={field.value === 0 ? '' : field.value}
+                onChange={(e) => {
+                  const newValue = parseInt(e.target.value) || 0;
+                  field.onChange(newValue);
+                }}
+                label="金額"
+                type="number"
+                error={!!errors.amount}
+                helperText={errors.amount?.message}
+              />
             )}
           />
           {/* 内容 */}
@@ -154,14 +236,20 @@ const TransactionForm = ({
             name="content"
             control={control}
             render={({ field }) => (
-              <TextField {...field} label="内容" type="text" />
+              <TextField
+                {...field}
+                label="内容"
+                type="text"
+                error={!!errors.content}
+                helperText={errors.content?.message}
+              />
             )}
           />
           {/* 保存ボタン */}
           <Button
             type="submit"
             variant="contained"
-            color={currentType === "income" ? "primary" : "error"}
+            color={currentType === 'income' ? 'primary' : 'error'}
             fullWidth
           >
             保存

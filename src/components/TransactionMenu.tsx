@@ -10,55 +10,57 @@ import {
   ListItem,
   Stack,
   Typography,
-} from "@mui/material";
-import React from "react";
-import DailySummary from "./DailySummary";
+} from '@mui/material';
+import React from 'react';
+import DailySummary from './DailySummary';
 
 //アイコン
-import NotesIcon from "@mui/icons-material/Notes";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import { Transaction } from "../types";
-import { formatCurrency } from "../utils/formatting";
-import IconComponents from "./common/IconComponents";
+import NotesIcon from '@mui/icons-material/Notes';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import { Transaction } from '../types';
+import { formatCurrency } from '../utils/formatting';
+import IconComponents from './common/IconComponents';
 
 interface TransactionMenuProps {
   dailyTransactions: Transaction[];
   currentDay: string;
-  onHandleAddTransactionForm: () => void;
+  onAddTransactionForm: () => void;
+  onSelectTransaction: (transaction: Transaction) => void;
 }
 
 const TransactionMenu = ({
   dailyTransactions,
   currentDay,
-  onHandleAddTransactionForm,
+  onAddTransactionForm,
+  onSelectTransaction,
 }: TransactionMenuProps) => {
   const menuDrawerWidth = 320;
   return (
     <Drawer
       sx={{
         width: menuDrawerWidth,
-        "& .MuiDrawer-paper": {
+        '& .MuiDrawer-paper': {
           width: menuDrawerWidth,
-          boxSizing: "border-box",
+          boxSizing: 'border-box',
           p: 2,
           top: 64,
           height: `calc(100% - 64px)`, // AppBarの高さを引いたビューポートの高さ
         },
       }}
-      variant={"permanent"}
-      anchor={"right"}
+      variant={'permanent'}
+      anchor={'right'}
     >
-      <Stack sx={{ height: "100%" }} spacing={2}>
-        <Typography fontWeight={"fontWeightBold"}>
+      <Stack sx={{ height: '100%' }} spacing={2}>
+        <Typography fontWeight={'fontWeightBold'}>
           日時： {currentDay}
         </Typography>
         <DailySummary dailyTransactions={dailyTransactions} />
         {/* 内訳タイトル&内訳追加ボタン */}
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             p: 1,
           }}
         >
@@ -71,24 +73,25 @@ const TransactionMenu = ({
           <Button
             startIcon={<AddCircleIcon />}
             color="primary"
-            onClick={onHandleAddTransactionForm}
+            onClick={onAddTransactionForm}
           >
             内訳を追加
           </Button>
         </Box>
-        <Box sx={{ flexGrow: 1, overflowY: "auto" }}>
+        <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
           <List aria-label="取引履歴">
             <Stack spacing={2}>
               {dailyTransactions.map((transaction) => (
                 <ListItem disablePadding>
                   <Card
                     sx={{
-                      width: "100%",
+                      width: '100%',
                       backgroundColor:
-                        transaction.type === "income"
+                        transaction.type === 'income'
                           ? (theme) => theme.palette.incomeColor.light
                           : (theme) => theme.palette.expenseColor.light,
                     }}
+                    onClick={() => onSelectTransaction(transaction)}
                   >
                     <CardActionArea>
                       <CardContent>
@@ -119,10 +122,10 @@ const TransactionMenu = ({
                           <Grid item xs={4.5}>
                             <Typography
                               gutterBottom
-                              textAlign={"right"}
+                              textAlign={'right'}
                               color="text.secondary"
                               sx={{
-                                wordBreak: "break-all",
+                                wordBreak: 'break-all',
                               }}
                             >
                               ¥{formatCurrency(transaction.amount)}

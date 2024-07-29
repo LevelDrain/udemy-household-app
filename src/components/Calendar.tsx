@@ -1,15 +1,15 @@
-import FullCalendar from "@fullcalendar/react";
-import React from "react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction";
-import jaLocale from "@fullcalendar/core/locales/ja";
-import "../calendar.css";
-import { DatesSetArg, EventContentArg } from "@fullcalendar/core";
-import { Balance, CalendarContent, Transaction } from "../types";
-import { calculateDailyBalances } from "../utils/financeCalculations";
-import { formatCurrency } from "../utils/formatting";
-import { useTheme } from "@mui/material";
-import { isSameMonth } from "date-fns/isSameMonth";
+import FullCalendar from '@fullcalendar/react';
+import React from 'react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
+import jaLocale from '@fullcalendar/core/locales/ja';
+import '../calendar.css';
+import { DatesSetArg, EventContentArg } from '@fullcalendar/core';
+import { Balance, CalendarContent, Transaction } from '../types';
+import { calculateDailyBalances } from '../utils/financeCalculations';
+import { formatCurrency } from '../utils/formatting';
+import { useTheme } from '@mui/material';
+import { isSameMonth } from 'date-fns/isSameMonth';
 
 interface CalendarProps {
   monthlyTransactions: Transaction[];
@@ -47,7 +47,7 @@ const Calendar = ({
 
   const backgroundEvent = {
     start: currentDay,
-    display: "background",
+    display: 'background',
     backgroundColor: theme.palette.incomeColor.light,
   };
 
