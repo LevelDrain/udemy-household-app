@@ -81,8 +81,8 @@ const TransactionMenu = ({
         <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
           <List aria-label="取引履歴">
             <Stack spacing={2}>
-              {dailyTransactions.map((transaction) => (
-                <ListItem disablePadding>
+              {dailyTransactions.map((transaction, index) => (
+                <ListItem disablePadding key={index}>
                   <Card
                     sx={{
                       width: '100%',
