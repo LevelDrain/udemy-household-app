@@ -1,21 +1,29 @@
-import { Grid, Paper } from '@mui/material';
-import React from 'react';
-import MonthSelector from '../components/MonthSelector';
-import CategoryChart from '../components/CategoryChart';
-import BarChart from '../components/BarChart';
-import TransactionTable from '../components/TransactionTable';
+import { Grid, Paper } from "@mui/material";
+import React from "react";
+import MonthSelector from "../components/MonthSelector";
+import CategoryChart from "../components/CategoryChart";
+import BarChart from "../components/BarChart";
+import TransactionTable from "../components/TransactionTable";
 
-const Report = () => {
+interface ReportProps {
+  currentMonth: Date;
+  setCurrentMonth: React.Dispatch<React.SetStateAction<Date>>;
+}
+
+const Report = ({ currentMonth, setCurrentMonth }: ReportProps) => {
   const commonPaperStyle = {
-    height: { xs: 'auto', md: '400px' },
-    display: 'flex',
-    flexDirection: 'column',
+    height: { xs: "auto", md: "400px" },
+    display: "flex",
+    flexDirection: "column",
   };
 
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <MonthSelector />
+        <MonthSelector
+          currentMonth={currentMonth}
+          setCurrentMonth={setCurrentMonth}
+        />
       </Grid>
       <Grid item xs={12} md={4}>
         <Paper sx={commonPaperStyle}>
