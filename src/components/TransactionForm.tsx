@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import CloseIcon from "@mui/icons-material/Close"; // 閉じるボタン用のアイコン
-import FastfoodIcon from "@mui/icons-material/Fastfood"; //食事アイコン
+import FastfoodIcon from "@mui/icons-material/Fastfood";
 import AlarmIcon from "@mui/icons-material/Alarm";
 import AddHomeIcon from "@mui/icons-material/AddHome";
 import Diversity3Icon from "@mui/icons-material/Diversity3";
@@ -36,6 +36,10 @@ interface TransactionFormProps {
   setSelectedTransaction: React.Dispatch<
     React.SetStateAction<Transaction | null>
   >;
+  onUpdateTransaction: (
+    transaction: Schema,
+    transactionId: string
+  ) => Promise<void>;
 }
 
 type IncomeExpense = "income" | "expense";
@@ -52,6 +56,7 @@ const TransactionForm = ({
   selectedTransaction,
   onDeleteTransaction,
   setSelectedTransaction,
+  onUpdateTransaction,
 }: TransactionFormProps) => {
   const formWidth = 320;
 
@@ -101,15 +106,27 @@ const TransactionForm = ({
   // 収支タイプを監視
   const currentType = watch("type");
 
-  useEffect(() => {
-    setValue("date", currentDay);
-    const newCategories =
-      currentType === "expense" ? expenseCategories : incomeCategories;
-    setCategories(newCategories);
-  }, [currentDay, currentType]);
-
   const onSubmit: SubmitHandler<Schema> = (data) => {
-    onSaveTransaction(data);
+    if (selectedTransaction) {
+      onUpdateTransaction(data, selectedTransaction.id)
+        .then(() => {
+          console.log("更新しました");
+          setSelectedTransaction(null);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    } else {
+      onSaveTransaction(data)
+        .then(() => {
+          console.log("保存しました");
+          setSelectedTransaction(null);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+
     reset({
       type: "expense",
       date: currentDay,
@@ -118,6 +135,22 @@ const TransactionForm = ({
       content: "",
     });
   };
+
+  useEffect(() => {
+    setValue("date", currentDay);
+    const newCategories =
+      currentType === "expense" ? expenseCategories : incomeCategories;
+    setCategories(newCategories);
+  }, [currentDay, currentType]);
+
+  useEffect(() => {
+    if (selectedTransaction) {
+      const categoryExists = categories.some(
+        (category) => category.label === selectedTransaction.category
+      );
+      setValue("category", categoryExists ? selectedTransaction.category : "");
+    }
+  }, [selectedTransaction, categories]);
 
   useEffect(() => {
     if (selectedTransaction) {
@@ -285,7 +318,7 @@ const TransactionForm = ({
             color={currentType === "income" ? "primary" : "error"}
             fullWidth
           >
-            保存
+            {selectedTransaction ? "更新" : "保存"}
           </Button>
 
           {/* 削除ボタン */}
